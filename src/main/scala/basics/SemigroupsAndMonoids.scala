@@ -1,10 +1,10 @@
 package basics
 
-import scala.annotation.targetName
+/* uses scala 3
 
-object SemigroupsAndMonoids extends App { 
+object SemigroupsAndMonoids extends App {
   // abstract implementation of Semigroups and Monoids + of course some extension methods
-  
+
   trait AbstractSemigroup[T] {
     def combine(a: T, b: T): T
   }
@@ -52,3 +52,4 @@ object SemigroupsAndMonoids extends App {
   println(reduceCompact("Foo " :: "Bar" :: Nil))
   println(reduceCompact(1 :: 2 :: 3 :: Nil))
 }
+*/
