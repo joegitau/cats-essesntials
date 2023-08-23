@@ -39,4 +39,8 @@ object Semigroups extends App {
 
  * Semigroups are a building block for more advanced concepts like Monoids, which are semigroups with an identity element.
  * They promote modularity and composability by allowing you to define operations separately from the data they operate on.
+ *
+ * Being "associative" refers to a property of a binary operation where the grouping of operations doesn't affect the final result.
+ * In other words, when an operation is associative, you can change the order in which you apply the operations to a set of elements,
+ * and the result will remain the same.
  */
