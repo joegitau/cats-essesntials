@@ -39,6 +39,63 @@ object Monads extends App {
   println(getPairs[List, Int, String](List(1, 2, 3, 4), List("a", "b", "c", "d")))
   println(getPairsAlt(List(1, 2, 3, 4), List("a", "b", "c", "d")))
 
+  // exercise
+  case class Connection(host: String, port: String)
+  trait HTTPService[F[_]] {
+    def getConnection(cfg: Map[String, String]): F[Connection]
+    def issueRequest(connection: Connection, payload: String): F[String]
+  }
+
+  // solve:
+  // a) if host & port are found in the configuration map, then wrap those values in F; else, fail
+  //    so, Try returns Failure,
+  //        Option returns None,
+  //        Future returns Failed
+  // b) if payload exceeds 30 characters return "Request, ${payload} accepted!" wrapped in F; else, fail as is above.
+
+  object HTTPServiceOption extends HTTPService[Option] {
+    override def getConnection(cfg: Map[String, String]): Option[Connection] = for {
+      host <- cfg.get("host")
+      port <- cfg.get("port")
+    } yield Connection(host, port)
+
+    override def issueRequest(connection: Connection, payload: String): Option[String] =
+      if (payload.length >= 30) None
+      else s"Request, [$payload]accepted!".pure[Option]
+  }
+
+  type ConnectionOr[T] = Either[String, T] // Left being the error
+
+  object HTTPServiceEither extends HTTPService[ConnectionOr] {
+    override def getConnection(cfg: Map[String, String]): ConnectionOr[Connection] =
+      if (!cfg.contains("host") || !cfg.contains("port")) Left("Connection failed")
+      else Right(Connection(cfg("host"), cfg("port")))
+
+    override def issueRequest(connection: Connection, payload: String): ConnectionOr[String] =
+      if (payload.length >= 30) Left("Payload is too long!")
+      else Right(s"Request, [$payload] accepted!")
+  }
+
+  // testing
+  val config = Map("host" -> "localhost", "port" -> "8080")
+
+  // individualized
+  val resultEither = for {
+    conn <- HTTPServiceEither.getConnection(config)
+    req  <- HTTPServiceEither.issueRequest(conn, "This is some payload that is arguably so long!")
+  } yield req
+
+  println(resultEither)
+
+  // generalized
+  def getHttpResponse[F[_] : Monad](service: HTTPService[F])(payload: String) = {
+    for {
+      conn <- service.getConnection(config)
+      resp <- service.issueRequest(conn, payload)
+    } yield resp
+  }
+
+  println(getHttpResponse(HTTPServiceEither)("Yeap, this is awesome!"))
 }
 
 /**
